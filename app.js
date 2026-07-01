@@ -2,6 +2,11 @@ const USER="ctpspeedtech";
 
 const REPO="english-test";
 
+// const USER="YOUR_GITHUB_USERNAME";
+
+// const REPO="YOUR_REPO_NAME";
+
+
 const FOLDER="images";
 
 
@@ -12,39 +17,41 @@ let currentExam=null;
 
 
 
-const api =
+async function start(){
+
+
+
+const api=
 
 `https://api.github.com/repos/${USER}/${REPO}/contents/${FOLDER}`;
 
 
 
-
-
-async function start(){
-
-
-let res =
+let response=
 await fetch(api);
 
 
 
-let files =
-await res.json();
+let files=
+await response.json();
 
 
 
-exams = files
+exams=
+
+files
 
 .filter(
-x=>x.name.match(/\.(jpg|jpeg|png)$/i)
+file =>
+file.name.match(/\.(jpg|jpeg|png)$/i)
 )
 
 .map(
-x=>({
+file => ({
 
-name:x.name,
+name:file.name,
 
-url:x.download_url
+url:file.download_url
 
 })
 
@@ -52,8 +59,19 @@ url:x.download_url
 
 
 
-fillSelect();
+if(exams.length==0){
 
+alert(
+"Không tìm thấy ảnh"
+);
+
+return;
+
+}
+
+
+
+createSelect();
 
 
 loadExam(0);
@@ -66,13 +84,20 @@ loadExam(0);
 
 
 
-function fillSelect(){
+
+
+function createSelect(){
+
 
 
 let select =
 document.getElementById(
 "examSelect"
 );
+
+
+
+select.innerHTML="";
 
 
 
@@ -90,7 +115,6 @@ option.value=index;
 option.textContent=item.name;
 
 
-
 select.appendChild(option);
 
 
@@ -102,7 +126,9 @@ select.appendChild(option);
 select.onchange=function(){
 
 
-loadExam(this.value);
+loadExam(
+Number(this.value)
+);
 
 
 }
@@ -115,12 +141,29 @@ loadExam(this.value);
 
 
 
-function parseName(name){
+
+
+
+
+function parseName(filename){
+
+
+
+let name =
+
+filename.replace(
+".jpg",
+""
+);
 
 
 
 name =
-name.replace(/\.(jpg|jpeg|png)$/i,"");
+
+name.replace(
+".png",
+""
+);
 
 
 
@@ -162,17 +205,16 @@ end:
 Number(result[4]),
 
 
-
 answers:
 result[5].split("")
-
 
 
 };
 
 
-
 }
+
+
 
 
 
@@ -196,29 +238,30 @@ parseName(file.name);
 
 if(!currentExam){
 
+
 alert(
-"Sai format tên file"
+"Sai format file: "
++file.name
 );
 
+
 return;
+
 
 }
 
 
 
 
-
 document
 .getElementById("title")
-.innerHTML =
+.innerHTML=
 
 `
 
 ${currentExam.book}
 
--
-
-Test ${currentExam.test}
+- Test ${currentExam.test}
 
 <br>
 
@@ -231,12 +274,9 @@ ${currentExam.end}
 
 
 
-
 document
 .getElementById("questionImage")
-.src =
-file.url;
-
+.src=file.url;
 
 
 
@@ -244,8 +284,12 @@ renderQuestions();
 
 
 
+updateScore();
+
 
 }
+
+
 
 
 
@@ -269,20 +313,24 @@ box.innerHTML="";
 
 
 for(
+
 let i=currentExam.start;
+
 i<=currentExam.end;
+
 i++
+
 ){
 
 
 
 box.innerHTML +=
 
-
-
 `
 
-<div class="question">
+<div
+class="question"
+id="question-${i}">
 
 
 <div class="number">
@@ -292,55 +340,79 @@ ${i}
 </div>
 
 
-<div class="option">
+
+<div class="answers">
+
+
+
+<label class="option">
 
 <input
+
 type="radio"
+
 name="q${i}"
-value="A">
+
+onclick="checkAnswer(${i},'A')">
 
 A
 
-</div>
+</label>
 
 
 
-<div class="option">
+<label class="option">
 
 <input
+
 type="radio"
+
 name="q${i}"
-value="B">
+
+onclick="checkAnswer(${i},'B')">
 
 B
 
-</div>
+</label>
 
 
 
-<div class="option">
+
+<label class="option">
 
 <input
+
 type="radio"
+
 name="q${i}"
-value="C">
+
+onclick="checkAnswer(${i},'C')">
 
 C
 
-</div>
+</label>
 
 
 
-<div class="option">
+
+<label class="option">
 
 <input
+
 type="radio"
+
 name="q${i}"
-value="D">
+
+onclick="checkAnswer(${i},'D')">
 
 D
 
+</label>
+
+
+
 </div>
+
 
 
 </div>
@@ -354,7 +426,6 @@ D
 
 
 
-
 }
 
 
@@ -362,86 +433,161 @@ D
 
 
 
-
-
-document
-.getElementById("checkBtn")
-.onclick=function(){
 
 
 
 let score=0;
 
+let answered=0;
 
-let total =
-currentExam.answers.length;
-
-
-
-for(
-let i=0;
-i<total;
-i++
-){
+let history={};
 
 
 
-let q =
-currentExam.start+i;
 
 
 
-let answer =
 
-document.querySelector(
+function checkAnswer(question,answer){
 
-`input[name="q${q}"]:checked`
 
+
+if(history[question]){
+
+return;
+
+}
+
+
+
+history[question]=true;
+
+
+answered++;
+
+
+
+let index =
+question-currentExam.start;
+
+
+
+let correct =
+currentExam.answers[index];
+
+
+
+let box =
+document.getElementById(
+`question-${question}`
 );
 
 
 
+let options =
+box.querySelectorAll(
+".option"
+);
+
+
+
+options.forEach(
+(option)=>{
+
+
+let input =
+option.querySelector("input");
+
+
+
 if(
-answer &&
-answer.value==
-currentExam.answers[i]
+input.nextSibling
+){}
 
-)
 
-{
 
+if(
+input.value==correct
+){
+
+option.classList.add(
+"correct"
+);
+
+}
+
+
+
+if(
+input.value==answer
+&&
+answer!=correct
+){
+
+option.classList.add(
+"wrong"
+);
+
+
+}
+
+
+});
+
+
+
+
+if(answer==correct){
 
 score++;
 
+}
+
+
+
+updateScore();
+
+
 
 }
 
 
 
 
-}
 
+
+
+
+
+function updateScore(){
 
 
 
 document
 .getElementById("result")
-.innerHTML =
+.innerHTML=
 
 `
 
-Đúng:
-${score}/${total}
+Đã làm:
+${answered}/${currentExam.answers.length}
 
 <br>
 
-${Math.round(score/total*100)}%
+Đúng:
+${score}/${currentExam.answers.length}
+
+<br>
+
+${Math.round(
+score/currentExam.answers.length*100
+)||0}%
 
 `;
 
 
 
-};
+}
 
 
 
