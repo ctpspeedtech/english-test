@@ -203,7 +203,7 @@ function cleanTitle(filename) {
 
 
 
-function loadExam(index) {
+function loadExam2(index) {
 
 
     currentIndex = index;
@@ -252,7 +252,32 @@ function loadExam(index) {
 }
 
 
+function loadExam(index) {
+    currentIndex = index;
 
+    const file = exams[index];
+
+    if (!file) {
+        console.error("No exam file");
+        return;
+    }
+
+    currentExam = parseName(file.name);
+
+    if (!currentExam) {
+        console.error("Sai format filename:", file.name);
+        return;
+    }
+
+    userAnswers = {};
+
+    document.getElementById("examSelect").value = index;
+    document.getElementById("title").innerHTML = cleanTitle(file.name);
+    document.getElementById("questionImage").src = file.url;
+
+    renderQuestions();
+    updateScore();
+}
 
 
 
