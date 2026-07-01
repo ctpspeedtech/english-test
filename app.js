@@ -173,11 +173,15 @@ function parseName2(filename) {
 
 function parseName(filename) {
 
-    filename = filename
-        .replace(/\.(jpg|jpeg|png)$/i, "");
+    // loại bỏ khoảng trắng 2 đầu (hay gặp từ GitHub API)
+    filename = filename.trim();
 
-    const regex =
-        /(.+)_test(\d+)_(\d+)-(\d+)_([A-D]+)/i;
+    // bỏ đuôi file
+    filename = filename.replace(/\.(jpg|jpeg|png)$/i, "");
+
+    // format chuẩn:
+    // Hacker2_Test1_158-161_DBDD
+    const regex = /^(.+?)_Test(\d+)_(\d+)-(\d+)_([A-D]+)$/i;
 
     const result = filename.match(regex);
 
