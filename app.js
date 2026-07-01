@@ -119,7 +119,7 @@ function createSelect() {
 
 
 
-function parseName(filename) {
+function parseName2(filename) {
 
 
     filename =
@@ -171,7 +171,29 @@ function parseName(filename) {
 }
 
 
+function parseName(filename) {
 
+    filename = filename
+        .replace(/\.(jpg|jpeg|png)$/i, "");
+
+    const regex =
+        /(.+)_test(\d+)_(\d+)-(\d+)_([A-D]+)/i;
+
+    const result = filename.match(regex);
+
+    if (!result) {
+        console.error("Sai format filename:", filename);
+        return null;
+    }
+
+    return {
+        book: result[1],
+        test: Number(result[2]),
+        start: Number(result[3]),
+        end: Number(result[4]),
+        answers: result[5].toUpperCase().split("")
+    };
+}
 
 
 
