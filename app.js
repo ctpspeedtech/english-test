@@ -1,81 +1,64 @@
-const USER="ctpspeedtech";
+const USER = "ctpspeedtech";
 
-const REPO="english-test";
+const REPO = "english-test";
+// const USER = "YOUR_USERNAME";
 
-// const USER="YOUR_GITHUB_USERNAME";
+// const REPO = "YOUR_REPO";
 
-// const REPO="YOUR_REPO_NAME";
-
-
-const FOLDER="images";
+const FOLDER = "images";
 
 
+let exams = [];
 
-let exams=[];
+let currentIndex = 0;
 
-let currentExam=null;
+let currentExam = null;
 
 
-
-async function start(){
+let userAnswers = {};
 
 
 
-const api=
 
-`https://api.github.com/repos/${USER}/${REPO}/contents/${FOLDER}`;
+// Load danh sách ảnh từ Github
 
-
-
-let response=
-await fetch(api);
+async function start() {
 
 
-
-let files=
-await response.json();
-
+    const api =
+        `https://api.github.com/repos/${USER}/${REPO}/contents/${FOLDER}`;
 
 
-exams=
+    const response = await fetch(api);
 
-files
 
-.filter(
-file =>
-file.name.match(/\.(jpg|jpeg|png)$/i)
-)
-
-.map(
-file => ({
-
-name:file.name,
-
-url:file.download_url
-
-})
-
-);
+    const files = await response.json();
 
 
 
-if(exams.length==0){
+    exams = files
 
-alert(
-"Không tìm thấy ảnh"
-);
+        .filter(
+            file =>
+                /\.(jpg|jpeg|png)$/i.test(file.name)
+        )
 
-return;
+        .map(
+            file => ({
 
-}
+                name: file.name,
+
+                url: file.download_url
+
+            })
+        );
 
 
 
-createSelect();
+    createSelect();
 
 
-loadExam(0);
-
+    loadExam(0);
 
 
 }
@@ -85,54 +68,47 @@ loadExam(0);
 
 
 
-
-function createSelect(){
-
+function createSelect() {
 
 
-let select =
-document.getElementById(
-"examSelect"
-);
+    const select =
+        document.getElementById("examSelect");
 
 
 
-select.innerHTML="";
+    exams.forEach(
+        (exam, index) => {
+
+
+            const option =
+                document.createElement("option");
+
+
+            option.value = index;
+
+
+            option.textContent =
+                cleanTitle(exam.name);
 
 
 
-exams.forEach(
-(item,index)=>{
+            select.appendChild(option);
 
 
-let option =
-document.createElement("option");
-
-
-option.value=index;
-
-
-option.textContent=item.name;
-
-
-select.appendChild(option);
+        }
+    );
 
 
 
-});
+    select.onchange = function () {
 
 
-
-select.onchange=function(){
-
-
-loadExam(
-Number(this.value)
-);
+        loadExam(
+            Number(this.value)
+        );
 
 
-}
-
+    };
 
 
 }
@@ -143,73 +119,79 @@ Number(this.value)
 
 
 
+function parseName(filename) {
 
 
-function parseName(filename){
-
-
-
-let name =
-
-filename.replace(
-".jpg",
-""
-);
+    filename =
+        filename
+            .replace(/\.(jpg|jpeg|png)$/i, "");
 
 
 
-name =
-
-name.replace(
-".png",
-""
-);
+    const regex =
+        /(.+)_test(\d+)_(\d+)-(\d+)_([ABCD]+)/;
 
 
 
-let regex =
-
-/(.+)_test(\d+)_(\d+)-(\d+)_([ABCD]+)/;
-
-
-
-let result =
-name.match(regex);
+    const result =
+        filename.match(regex);
 
 
 
-if(!result){
+    if (!result) {
 
-return null;
+        return null;
+
+    }
+
+
+
+    return {
+
+
+        book: result[1],
+
+
+        test: result[2],
+
+
+        start: Number(result[3]),
+
+
+        end: Number(result[4]),
+
+
+        answers:
+            result[5].split("")
+
+
+    };
+
 
 }
 
 
 
-return {
 
 
-book:
-result[1],
 
 
-test:
-result[2],
+// Xóa phần đáp án _ACDB
+
+function cleanTitle(filename) {
 
 
-start:
-Number(result[3]),
+    return filename
 
+        .replace(
+            /_[ABCD]+(?=\.)/,
+            ""
+        )
 
-end:
-Number(result[4]),
-
-
-answers:
-result[5].split("")
-
-
-};
+        .replace(
+            /\.(jpg|jpeg|png)$/i,
+            ""
+        );
 
 
 }
@@ -221,376 +203,463 @@ result[5].split("")
 
 
 
-
-function loadExam(index){
-
+function loadExam(index) {
 
 
-let file =
-exams[index];
+    currentIndex = index;
 
 
-
-currentExam =
-parseName(file.name);
+    const file =
+        exams[index];
 
 
 
-if(!currentExam){
+    currentExam =
+        parseName(file.name);
 
 
-alert(
-"Sai format file: "
-+file.name
-);
+
+    userAnswers = {};
 
 
-return;
+
+    document
+        .getElementById("examSelect")
+        .value = index;
+
+
+
+    document
+        .getElementById("title")
+        .innerHTML =
+
+        cleanTitle(file.name);
+
+
+
+    document
+        .getElementById("questionImage")
+        .src = file.url;
+
+
+
+    renderQuestions();
+
+
+    updateScore();
 
 
 }
+
+
+
+
+
+
+
+
+function renderQuestions() {
+
+
+    const box =
+        document.getElementById("questions");
+
+
+
+    box.innerHTML = "";
+
+
+
+    for (
+        let i = currentExam.start;
+        i <= currentExam.end;
+        i++
+    ) {
+
+
+        box.innerHTML +=
+
+        `
+
+        <div class="question"
+             id="question-${i}">
+
+
+            <div class="number">
+
+                ${i}
+
+            </div>
+
+
+
+            <div class="answers">
+
+
+                ${createOption(i,"A")}
+
+                ${createOption(i,"B")}
+
+                ${createOption(i,"C")}
+
+                ${createOption(i,"D")}
+
+
+            </div>
+
+
+        </div>
+
+        `;
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+function createOption2(question,value) {
+
+
+    return `
+
+    <label class="option">
+
+
+        <input
+
+        type="radio"
+
+        name="q${question}"
+
+        onclick="checkAnswer(${question}, '${value}')">
+
+
+        ${value}
+
+
+    </label>
+
+    `;
+
+
+}
+
+function createOption(question, value) {
+
+
+    return `
+
+    <label class="option">
+
+
+        <input
+
+        type="radio"
+
+        name="q${question}"
+
+        value="${value}"
+
+        onclick="checkAnswer(${question}, '${value}')">
+
+
+        ${value}
+
+
+    </label>
+
+    `;
+
+
+}
+
+
+
+
+
+
+
+
+function checkAnswer(question, answer) {
+
+
+    userAnswers[question] = answer;
+
+
+
+    const index =
+        question - currentExam.start;
+
+
+
+    const correct =
+        currentExam.answers[index];
+
+
+
+    const box =
+        document.getElementById(
+            `question-${question}`
+        );
+
+
+
+    const options =
+        box.querySelectorAll(".option");
+
+
+
+    options.forEach(
+        option => {
+
+
+            const input =
+                option.querySelector("input");
+
+
+
+            option.classList.remove(
+                "correct",
+                "wrong"
+            );
+
+
+
+            if (
+                input.value === correct
+            ) {
+
+                option.classList.add(
+                    "correct"
+                );
+
+            }
+
+
+
+            if (
+                input.value === answer &&
+                answer !== correct
+            ) {
+
+                option.classList.add(
+                    "wrong"
+                );
+
+            }
+
+
+        }
+    );
+
+
+
+    updateScore();
+
+
+
+    if (finished()) {
+
+
+        setTimeout(
+            nextExam,
+            800
+        );
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+function updateScore() {
+
+
+    let total =
+        currentExam.answers.length;
+
+
+
+    let done =
+        Object.keys(userAnswers).length;
+
+
+
+    let correct = 0;
+
+
+
+    Object.keys(userAnswers)
+        .forEach(
+            q => {
+
+
+                let index =
+                    Number(q)
+                    -
+                    currentExam.start;
+
+
+
+                if (
+                    userAnswers[q]
+                    ===
+                    currentExam.answers[index]
+                ) {
+
+                    correct++;
+
+                }
+
+
+            }
+        );
+
+
+
+    document
+        .getElementById("result")
+        .innerHTML =
+
+
+        `
+
+        Đã làm:
+        ${done}/${total}
+
+
+        <br>
+
+
+        ✅ Đúng:
+        ${correct}
+
+
+        &nbsp;
+
+
+        ❌ Sai:
+        ${done - correct}
+
+
+        `;
+
+
+}
+
+
+
+
+
+
+
+
+function finished() {
+
+
+    let total =
+        currentExam.answers.length;
+
+
+
+    if (
+        Object.keys(userAnswers).length
+        !==
+        total
+    ) {
+
+        return false;
+
+    }
+
+
+
+    return Object.keys(userAnswers)
+        .every(
+            q => {
+
+
+                let index =
+                    Number(q)
+                    -
+                    currentExam.start;
+
+
+
+                return (
+                    userAnswers[q]
+                    ===
+                    currentExam.answers[index]
+                );
+
+
+            }
+        );
+
+
+}
+
+
+
+
+
+
+
+
+function nextExam() {
+
+
+    let next =
+        currentIndex + 1;
+
+
+
+    if (
+        next >= exams.length
+    ) {
+
+
+        alert(
+            "Đã hết đề"
+        );
+
+
+        return;
+
+
+    }
+
+
+
+    loadExam(next);
+
+
+}
+
+
 
 
 
 
 document
-.getElementById("title")
-.innerHTML=
-
-`
-
-${currentExam.book}
-
-- Test ${currentExam.test}
-
-<br>
-
-Câu ${currentExam.start}
--
-${currentExam.end}
-
-`;
-
-
-
-
-document
-.getElementById("questionImage")
-.src=file.url;
-
-
-
-renderQuestions();
-
-
-
-updateScore();
-
-
-}
-
-
-
-
-
-
-
-
-
-function renderQuestions(){
-
-
-
-let box =
-document.getElementById(
-"questions"
-);
-
-
-
-box.innerHTML="";
-
-
-
-for(
-
-let i=currentExam.start;
-
-i<=currentExam.end;
-
-i++
-
-){
-
-
-
-box.innerHTML +=
-
-`
-
-<div
-class="question"
-id="question-${i}">
-
-
-<div class="number">
-
-${i}
-
-</div>
-
-
-
-<div class="answers">
-
-
-
-<label class="option">
-
-<input
-
-type="radio"
-
-name="q${i}"
-
-onclick="checkAnswer(${i},'A')">
-
-A
-
-</label>
-
-
-
-<label class="option">
-
-<input
-
-type="radio"
-
-name="q${i}"
-
-onclick="checkAnswer(${i},'B')">
-
-B
-
-</label>
-
-
-
-
-<label class="option">
-
-<input
-
-type="radio"
-
-name="q${i}"
-
-onclick="checkAnswer(${i},'C')">
-
-C
-
-</label>
-
-
-
-
-<label class="option">
-
-<input
-
-type="radio"
-
-name="q${i}"
-
-onclick="checkAnswer(${i},'D')">
-
-D
-
-</label>
-
-
-
-</div>
-
-
-
-</div>
-
-
-`;
-
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-let score=0;
-
-let answered=0;
-
-let history={};
-
-
-
-
-
-
-
-function checkAnswer(question,answer){
-
-
-
-if(history[question]){
-
-return;
-
-}
-
-
-
-history[question]=true;
-
-
-answered++;
-
-
-
-let index =
-question-currentExam.start;
-
-
-
-let correct =
-currentExam.answers[index];
-
-
-
-let box =
-document.getElementById(
-`question-${question}`
-);
-
-
-
-let options =
-box.querySelectorAll(
-".option"
-);
-
-
-
-options.forEach(
-(option)=>{
-
-
-let input =
-option.querySelector("input");
-
-
-
-if(
-input.nextSibling
-){}
-
-
-
-if(
-input.value==correct
-){
-
-option.classList.add(
-"correct"
-);
-
-}
-
-
-
-if(
-input.value==answer
-&&
-answer!=correct
-){
-
-option.classList.add(
-"wrong"
-);
-
-
-}
-
-
-});
-
-
-
-
-if(answer==correct){
-
-score++;
-
-}
-
-
-
-updateScore();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-function updateScore(){
-
-
-
-document
-.getElementById("result")
-.innerHTML=
-
-`
-
-Đã làm:
-${answered}/${currentExam.answers.length}
-
-<br>
-
-Đúng:
-${score}/${currentExam.answers.length}
-
-<br>
-
-${Math.round(
-score/currentExam.answers.length*100
-)||0}%
-
-`;
-
-
-
-}
-
-
-
+    .getElementById("nextBtn")
+    .onclick =
+    nextExam;
 
 
 

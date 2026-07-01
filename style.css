@@ -1,202 +1,141 @@
-*{
-
-box-sizing:border-box;
-
+* {
+  box-sizing: border-box;
 }
 
+body {
+  margin: 0;
 
+  background: #f3f3f3;
 
-body{
-
-margin:0;
-
-background:#f3f3f3;
-
-font-family:
-Arial,
-sans-serif;
-
+  font-family: Arial, sans-serif;
 }
 
+.container {
+  max-width: 900px;
 
+  margin: auto;
 
-.container{
+  background: white;
 
+  min-height: 100vh;
 
-max-width:900px;
-
-margin:auto;
-
-background:white;
-
-min-height:100vh;
-
-padding:20px;
-
-
+  padding: 20px;
 }
 
-
-
-h1{
-
-text-align:center;
-
+h1 {
+  text-align: center;
 }
 
+select {
+  width: 100%;
 
+  padding: 12px;
 
-select{
+  font-size: 18px;
 
-
-width:100%;
-
-padding:12px;
-
-font-size:18px;
-
-margin-bottom:20px;
-
-
+  margin-bottom: 20px;
 }
 
+#questionImage {
+  width: 100%;
 
+  height: auto;
 
-#questionImage{
-
-
-width:100%;
-
-height:auto;
-
-border-radius:10px;
-
+  border-radius: 10px;
 }
 
+.question {
+  padding: 15px 5px;
 
-
-.question{
-
-
-padding:15px 5px;
-
-border-bottom:1px solid #ddd;
-
-
+  border-bottom: 1px solid #ddd;
 }
 
+.number {
+  font-size: 22px;
 
+  font-weight: bold;
 
-.number{
-
-
-font-size:22px;
-
-font-weight:bold;
-
-margin-bottom:10px;
-
-
+  margin-bottom: 10px;
 }
 
+.answers {
+  display: flex;
 
-
-.answers{
-
-
-display:flex;
-
-width:100%;
-
+  width: 100%;
 }
 
+.option {
+  flex: 1;
 
+  display: flex;
 
-.option{
+  justify-content: center;
 
+  align-items: center;
 
-flex:1;
+  padding: 10px;
 
-display:flex;
+  font-size: 20px;
 
-align-items:center;
+  cursor: pointer;
 
-justify-content:center;
-
-padding:10px;
-
-font-size:20px;
-
-cursor:pointer;
-
-border-radius:8px;
-
-
+  border-radius: 8px;
 }
 
-
-
-.option input{
-
-
-margin-right:5px;
-
-
+.option input {
+  margin-right: 5px;
 }
 
-
-
-.correct{
-
-
-background:#b7f7b7;
-
+.option:hover {
+  background: #eee;
 }
 
-
-
-.wrong{
-
-
-background:#ffb5b5;
-
+.correct {
+  background: #b7f7b7;
 }
 
-
-
-#result{
-
-
-margin-top:20px;
-
-text-align:center;
-
-font-size:24px;
-
-font-weight:bold;
-
-
+.wrong {
+  background: #ffb5b5;
 }
 
-
-
-@media(max-width:600px){
-
-
-.container{
-
-padding:10px;
-
+.control {
+  margin-top: 20px;
 }
 
+button {
+  width: 100%;
 
-.option{
+  padding: 15px;
 
-font-size:17px;
+  font-size: 20px;
 
-padding:8px;
+  border: none;
 
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  background: #28a745;
+
+  color: white;
 }
 
+#result {
+  margin-top: 20px;
 
+  text-align: center;
+
+  font-size: 22px;
+
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
+
+  .option {
+    font-size: 17px;
+  }
 }
